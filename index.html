@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UPI Payment Demo</title>
+</head>
+<body>
+    <button onclick="initiateUPIPayment()">Pay Now</button>
+    <div id="payment-status"></div>
+    <script>
+        const UPI_PAYMENT_REQUEST_CODE = 100;
+function initiateUPIPayment() {
+    const upiId = "ykryp11@ybl";
+    const amount = "1"; // Example amount
+    const note = "Payment for illustartion"; // Optional note
+
+    const uri = `upi://pay?pa=${upiId}&pn=${note}&am=${amount}`;
+    const paymentIntent = new Intent(Intent.ACTION_VIEW);
+    paymentIntent.setData(Uri.parse(uri));
+    startActivityForResult(paymentIntent, UPI_PAYMENT_REQUEST_CODE);
+}
+
+function handlePaymentResult(resultCode, data) {
+    if (resultCode === Activity.RESULT_OK) {
+        const status = data.getStringExtra("response");
+        const paymentConfirmation = paymentDataFromStatus(status);
+        if (paymentConfirmation) {
+            // Verify payment status with server-side logic
+            verifyPaymentStatus(paymentConfirmation)
+                .then(() => {
+                    showSuccessMessage("Payment successful!");
+                })
+                .catch((error) => {
+                    showErrorMessage("Payment verification failed: " + error);
+                });
+        } else {
+            showErrorMessage("Payment failed or invalid status received.");
+        }
+    } else {
+        showErrorMessage("Payment cancelled by user.");
+    }
+}
+
+function paymentDataFromStatus(status) {
+    // Implement logic to extract payment details from status string
+    // (example: transaction ID, timestamp, etc.)
+    return paymentDetails;
+}
+
+function verifyPaymentStatus(paymentConfirmation) {
+    // Implement server-side logic to verify payment status with UPI provider
+    return fetch(`your_server_endpoint`, {
+        method: 'POST',
+        body: JSON.stringify(paymentConfirmation)
+    })
+    .then(response => response.json())
+    .then(verificationResponse => {
+        if (verificationResponse.success) {
+            return true; // Payment verified
+        } else {
+            throw new Error(verificationResponse.error_message);
+        }
+    });
+}
+
+function showSuccessMessage(message) {
+    const statusDiv = document.getElementById("payment-status");
+    statusDiv.textContent = message;
+    statusDiv.style.color = "green";
+}
+
+function showErrorMessage(message) {
+    const statusDiv = document.getElementById("payment-status");
+    statusDiv.textContent = message;
+    statusDiv.style.color = "red";
+}
+
+    </script>
+</body>
+</html>
